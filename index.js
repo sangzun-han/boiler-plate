@@ -4,7 +4,7 @@ const port = 3000;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const config = require("./config/key");
-
+const { auth } = require("./middleware/auth");
 const { User } = require("./models/User");
 
 //application/x-www-form-urlencoded
@@ -27,7 +27,7 @@ mongoose
 
 app.get("/", (req, res) => res.send("Hello World"));
 
-app.post("/register", (req, res) => {
+app.post("/api/users/register", (req, res) => {
   // 회원가입시 필요한 정보 client에서 가져오면
   // DB에 저장
   const user = new User(req.body);
@@ -40,7 +40,7 @@ app.post("/register", (req, res) => {
   });
 });
 
-app.post("/login", (req, res) => {
+app.post("/api/users/login", (req, res) => {
   // 요청이메일 DB에서찾기
   User.findOne({ email: req.body.email }, (err, user) => {
     if (!user) {
@@ -67,6 +67,20 @@ app.post("/login", (req, res) => {
         userId: user._id,
       });
     });
+  });
+});
+
+app.get("/api/users/auth", auth, (req, res) => {
+  // middleware를 통과했다 === Authentication이 true
+  res.json(200).json({
+    _id: req.user._id,
+    isAdmin: req.user.role === 0 ? false : true,
+    isAuth: true,
+    email: req.user.email,
+    name: req.user.name,
+    lastname: req.user.lastname,
+    role: req.user.role,
+    image: req.uesr.image,
   });
 });
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
